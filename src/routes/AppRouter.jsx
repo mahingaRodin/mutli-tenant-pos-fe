@@ -8,8 +8,12 @@ import AuthLayout from '../components/layout/AuthLayout';
 
 // Pages
 import LoginPage from '../pages/auth/LoginPage';
+import RegisterPage from '../pages/auth/RegisterPage';
 import DashboardOverview from '../pages/dashboard/DashboardOverview';
+import ProductsPage from '../pages/dashboard/ProductsPage';
+import StoresPage from '../pages/dashboard/StoresPage';
 import PosTerminal from '../pages/pos/PosTerminal';
+import LandingPage from '../pages/LandingPage';
 
 // Protected Route Wrapper
 const ProtectedRoute = ({ children }) => {
@@ -30,8 +34,16 @@ export const router = createBrowserRouter([
         ),
     },
     {
+        path: '/register',
+        element: (
+            <AuthLayout>
+                <RegisterPage />
+            </AuthLayout>
+        ),
+    },
+    {
         path: '/',
-        element: <ProtectedRoute><Navigate to="/dashboard" replace /></ProtectedRoute>,
+        element: <LandingPage />,
     },
     {
         path: '/dashboard',
@@ -45,7 +57,15 @@ export const router = createBrowserRouter([
                 index: true,
                 element: <DashboardOverview />,
             },
-            // Add more nested dashboard routes here: /products, /orders, /settings
+            {
+                path: 'products',
+                element: <ProductsPage />,
+            },
+            {
+                path: 'stores',
+                element: <StoresPage />,
+            },
+            // Add more nested dashboard routes here: /orders, /settings
         ],
     },
     {

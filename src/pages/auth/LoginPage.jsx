@@ -1,27 +1,36 @@
 import React, { useState } from 'react';
 import { useAuthStore } from '../../store/useAuthStore';
 import { Button } from '../../components/ui/button';
-import { ShoppingCart, LogIn, Mail, Lock } from 'lucide-react';
+import { ShoppingCart, LogIn, Mail, Lock, AlertCircle } from 'lucide-react';
+import { authApi } from '../../lib/api/auth';
 
 const LoginPage = () => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [isLoading, setIsLoading] = useState(false);
+    const [error, setError] = useState('');
     const login = useAuthStore((state) => state.login);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
         setIsLoading(true);
+        setError('');
 
-        // Simulate API call to backend
-        setTimeout(() => {
-            // Mock success
-            login(
-                { id: 1, email: email, username: 'admin', role: 'ADMIN' },
-                'mocked-jwt-token-12345'
-            );
+        try {
+            const response = await authApi.login({ email, password });
+
+            // Backend returns AuthResponse containing token and user
+            if (response.data && response.data.token) {
+                // Determine roles or map user data as needed using useAuthStore
+                login(response.data.user || { email, role: 'ADMIN' }, response.data.token);
+                // Auth store redirection or logic can be handled here or in useEffect
+            }
+        } catch (err) {
+            console.error('Login failed:', err);
+            setError(err.response?.data?.message || 'Invalid email or password. Please try again.');
+        } finally {
             setIsLoading(false);
-        }, 1500);
+        }
     };
 
     return (
@@ -34,6 +43,13 @@ const LoginPage = () => {
                 <h2 className="text-3xl font-bold text-slate-900 tracking-tight">Welcome back</h2>
                 <p className="text-slate-500">Sign in to your tenant account</p>
             </div>
+
+            {error && (
+                <div className="bg-red-50 border border-red-100 text-red-600 px-4 py-3 rounded-lg flex items-start gap-3">
+                    <AlertCircle className="w-5 h-5 shrink-0 mt-0.5" />
+                    <p className="text-sm">{error}</p>
+                </div>
+            )}
 
             <form onSubmit={handleSubmit} className="space-y-5">
                 <div className="space-y-1">
@@ -89,6 +105,15 @@ const LoginPage = () => {
                     )}
                 </Button>
             </form>
+
+            <div className="pt-4 text-center border-t border-slate-100">
+                <p className="text-sm text-slate-600">
+                    Don't have an account?{' '}
+                    <Link to="/register" className="font-semibold text-indigo-600 hover:text-indigo-500">
+                        Sign up for free
+                    </Link>
+                </p>
+            </div>
         </div>
     );
 };

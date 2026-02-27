@@ -1,0 +1,183 @@
+import React, { useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { useAuthStore } from '../../store/useAuthStore';
+import { Button } from '../../components/ui/button';
+import { Store, UserPlus, Mail, Lock, Building2, AlertCircle } from 'lucide-react';
+import { authApi } from '../../lib/api/auth';
+
+const RegisterPage = () => {
+    const [formData, setFormData] = useState({
+        storeName: '',
+        email: '',
+        password: '',
+        confirmPassword: ''
+    });
+    const [isLoading, setIsLoading] = useState(false);
+    const [error, setError] = useState('');
+    const login = useAuthStore((state) => state.login);
+    const navigate = useNavigate();
+
+    const handleChange = (e) => {
+        setFormData({
+            ...formData,
+            [e.target.id]: e.target.value
+        });
+    };
+
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+
+        if (formData.password !== formData.confirmPassword) {
+            setError("Passwords do not match");
+            return;
+        }
+
+        setIsLoading(true);
+        setError('');
+
+        try {
+            // Backend expects UserDto
+            const userDto = {
+                firstName: 'Admin', // Default placeholders for simple signup
+                lastName: 'User',
+                email: formData.email,
+                password: formData.password,
+                role: 'ADMIN' // Explicitly asking for ADMIN role on signup
+            };
+
+            const response = await authApi.register(userDto);
+
+            if (response.data && response.data.token) {
+                // Log user in automatically with the returned token
+                login(response.data.user || { email: formData.email, role: 'ADMIN' }, response.data.token);
+                navigate('/dashboard');
+            }
+        } catch (err) {
+            console.error('Registration failed:', err);
+            setError(err.response?.data?.message || 'Failed to register account. Please try again.');
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    return (
+        <div className="bg-white p-8 rounded-2xl shadow-xl shadow-slate-200/50 border border-slate-100 w-full max-w-md mx-auto space-y-6">
+
+            <div className="text-center space-y-2 mb-8 items-center flex flex-col">
+                <div className="h-14 w-14 bg-indigo-100 rounded-2xl flex items-center justify-center mb-2">
+                    <Store className="w-8 h-8 text-indigo-600" />
+                </div>
+                <h2 className="text-3xl font-bold text-slate-900 tracking-tight">Create an account</h2>
+                <p className="text-slate-500">Start your 14-day free trial today</p>
+            </div>
+
+            {error && (
+                <div className="bg-red-50 border border-red-100 text-red-600 px-4 py-3 rounded-lg flex items-start gap-3">
+                    <AlertCircle className="w-5 h-5 shrink-0 mt-0.5" />
+                    <p className="text-sm">{error}</p>
+                </div>
+            )}
+
+            <form onSubmit={handleSubmit} className="space-y-4">
+                <div className="space-y-1">
+                    <label className="text-sm font-medium text-slate-700 block" htmlFor="storeName">Business Name</label>
+                    <div className="relative">
+                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <Building2 className="h-5 w-5 text-slate-400" />
+                        </div>
+                        <input
+                            id="storeName"
+                            type="text"
+                            value={formData.storeName}
+                            onChange={handleChange}
+                            required
+                            className="block w-full pl-10 pr-3 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-600 focus:border-indigo-600 transition-colors sm:text-sm text-slate-900"
+                            placeholder="Acme Retail"
+                        />
+                    </div>
+                </div>
+
+                <div className="space-y-1">
+                    <label className="text-sm font-medium text-slate-700 block" htmlFor="email">Work Email</label>
+                    <div className="relative">
+                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <Mail className="h-5 w-5 text-slate-400" />
+                        </div>
+                        <input
+                            id="email"
+                            type="email"
+                            value={formData.email}
+                            onChange={handleChange}
+                            required
+                            className="block w-full pl-10 pr-3 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-600 focus:border-indigo-600 transition-colors sm:text-sm text-slate-900"
+                            placeholder="admin@acme.com"
+                        />
+                    </div>
+                </div>
+
+                <div className="space-y-1">
+                    <label className="text-sm font-medium text-slate-700 block" htmlFor="password">Password</label>
+                    <div className="relative">
+                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <Lock className="h-5 w-5 text-slate-400" />
+                        </div>
+                        <input
+                            id="password"
+                            type="password"
+                            value={formData.password}
+                            onChange={handleChange}
+                            required
+                            minLength={8}
+                            className="block w-full pl-10 pr-3 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-600 focus:border-indigo-600 transition-colors sm:text-sm text-slate-900"
+                            placeholder="••••••••"
+                        />
+                    </div>
+                </div>
+
+                <div className="space-y-1 mb-2">
+                    <label className="text-sm font-medium text-slate-700 block" htmlFor="confirmPassword">Confirm Password</label>
+                    <div className="relative">
+                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <Lock className="h-5 w-5 text-slate-400" />
+                        </div>
+                        <input
+                            id="confirmPassword"
+                            type="password"
+                            value={formData.confirmPassword}
+                            onChange={handleChange}
+                            required
+                            className="block w-full pl-10 pr-3 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-600 focus:border-indigo-600 transition-colors sm:text-sm text-slate-900"
+                            placeholder="••••••••"
+                        />
+                    </div>
+                </div>
+
+                <Button
+                    type="submit"
+                    disabled={isLoading || (formData.password !== formData.confirmPassword && formData.confirmPassword.length > 0)}
+                    className="w-full h-11 bg-indigo-600 hover:bg-indigo-700 text-white font-medium rounded-lg transition-colors flex items-center justify-center gap-2 mt-4"
+                >
+                    {isLoading ? (
+                        <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                    ) : (
+                        <>
+                            Register Account <UserPlus className="w-4 h-4 ml-1" />
+                        </>
+                    )}
+                </Button>
+            </form>
+
+            <div className="pt-4 text-center border-t border-slate-100">
+                <p className="text-sm text-slate-600">
+                    Already have an account?{' '}
+                    <Link to="/login" className="font-semibold text-indigo-600 hover:text-indigo-500">
+                        Sign in
+                    </Link>
+                </p>
+            </div>
+
+        </div>
+    );
+};
+
+export default RegisterPage;
