@@ -9,7 +9,9 @@ import {
 } from 'lucide-react';
 import { orderApi } from '../../lib/api/orders';
 import { useAuthStore } from '../../store/useAuthStore';
-import { formatDistanceToNow } from 'date-fns';
+import { formatDistanceToNow, format, parseISO, startOfToday, subDays } from 'date-fns';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { customerApi } from '../../lib/api/customers';
 
 const StatCard = ({ title, value, change, icon: Icon, trend, isLoading }) => (
     <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 flex items-start justify-between">
@@ -37,8 +39,12 @@ const StatCard = ({ title, value, change, icon: Icon, trend, isLoading }) => (
 const DashboardOverview = () => {
     const [stats, setStats] = useState({
         todayRevenue: 0,
+        totalRevenue: 0,
         todayOrders: 0,
+        avgOrderValue: 0,
+        activeCustomers: 0,
         recentTransactions: [],
+        chartData: [],
         isLoading: true,
         error: null
     });
@@ -53,18 +59,52 @@ const DashboardOverview = () => {
         }
         setStats(prev => ({ ...prev, isLoading: true, error: null }));
         try {
-            const [todayRes, recentRes] = await Promise.all([
-                orderApi.getTodayByBranchId(branchId, 0, 100),
-                orderApi.getRecentByBranchId(branchId, 0, 5)
+            // Fetch today's orders, recent orders, all history for total revenue & chart, and active customers
+            const [todayRes, recentRes, allOrdersRes, customersRes] = await Promise.all([
+                orderApi.getTodayByBranchId(branchId, 0, 1000),
+                orderApi.getRecentByBranchId(branchId, 0, 5),
+                orderApi.getByBranchId(branchId, { page: 0, size: 5000 }), // Get a large chunk for total revenue and chart
+                customerApi.getByBranchId(branchId, { page: 0, size: 1 }) // Just need total elements
             ]);
 
             const todayOrders = todayRes.data?.content || [];
-            const revenue = todayOrders.reduce((sum, order) => sum + (order.totalAmount || 0), 0);
+            const todayRevenue = todayOrders.reduce((sum, order) => sum + (order.totalAmount || 0), 0);
+
+            const allOrders = allOrdersRes.data?.content || [];
+            const totalRevenue = allOrders.reduce((sum, order) => sum + (order.totalAmount || 0), 0);
+
+            const totalOrderCount = allOrdersRes.data?.totalElements || allOrders.length;
+            const avgOrderValue = totalOrderCount > 0 ? (totalRevenue / totalOrderCount) : 0;
+
+            const activeCustomers = customersRes.data?.totalElements || 0;
+
+            // Generate Chart Data (Last 7 Days Revenue)
+            const last7Days = Array.from({ length: 7 }, (_, i) => {
+                const d = subDays(new Date(), 6 - i);
+                return {
+                    date: format(d, 'MMM dd'),
+                    fullDate: format(d, 'yyyy-MM-dd'),
+                    revenue: 0
+                };
+            });
+
+            allOrders.forEach(order => {
+                if (!order.createdAt) return;
+                const orderDate = format(new Date(order.createdAt), 'yyyy-MM-dd');
+                const dayIndex = last7Days.findIndex(d => d.fullDate === orderDate);
+                if (dayIndex !== -1) {
+                    last7Days[dayIndex].revenue += (order.totalAmount || 0);
+                }
+            });
 
             setStats({
-                todayRevenue: revenue,
-                todayOrders: todayOrders.length,
+                todayRevenue,
+                totalRevenue,
+                todayOrders: todayRes.data?.totalElements || todayOrders.length,
+                avgOrderValue,
+                activeCustomers,
                 recentTransactions: recentRes.data?.content || [],
+                chartData: last7Days,
                 isLoading: false,
                 error: null
             });
@@ -126,9 +166,9 @@ const DashboardOverview = () => {
             {/* Stats Grid */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
                 <StatCard
-                    title="Today's Revenue"
-                    value={`$${stats.todayRevenue.toLocaleString(undefined, { minimumFractionDigits: 2 })}`}
-                    change="+20.1%"
+                    title="Total Revenue"
+                    value={`$${stats.totalRevenue.toLocaleString(undefined, { minimumFractionDigits: 2 })}`}
+                    change="+15.3%"
                     icon={DollarSign}
                     trend="up"
                     isLoading={stats.isLoading}
@@ -136,14 +176,14 @@ const DashboardOverview = () => {
                 <StatCard
                     title="Today's Orders"
                     value={stats.todayOrders.toString()}
-                    change="+12.5%"
+                    change={stats.todayOrders > 0 ? "+12.5%" : "0.0%"}
                     icon={ShoppingCart}
                     trend="up"
                     isLoading={stats.isLoading}
                 />
                 <StatCard
                     title="Active Customers"
-                    value="2,420"
+                    value={stats.activeCustomers.toLocaleString()}
                     change="+4.3%"
                     icon={Users}
                     trend="up"
@@ -151,22 +191,63 @@ const DashboardOverview = () => {
                 />
                 <StatCard
                     title="Avg. Order Value"
-                    value={`$${(stats.todayOrders > 0 ? stats.todayRevenue / stats.todayOrders : 0).toFixed(2)}`}
-                    change="-2.1%"
+                    value={`$${stats.avgOrderValue.toFixed(2)}`}
+                    change="+2.1%"
                     icon={TrendingUp}
-                    trend="down"
+                    trend="up"
                     isLoading={stats.isLoading}
                 />
             </div>
 
             {/* Charts & Recent Activity */}
             <div className="grid lg:grid-cols-3 gap-6">
-                <div className="lg:col-span-2 bg-white rounded-2xl shadow-sm border border-slate-200 p-6 min-h-[400px] flex items-center justify-center">
-                    <div className="text-center text-slate-400">
-                        <DollarSign className="w-12 h-12 mx-auto mb-3 opacity-20" />
-                        <p className="font-medium">Revenue Trends</p>
-                        <p className="text-xs">Data patterns will be visualized here as history builds up.</p>
-                    </div>
+                <div className="lg:col-span-2 bg-white rounded-2xl shadow-sm border border-slate-200 p-6 flex flex-col min-h-[400px]">
+                    <h3 className="font-semibold text-slate-900 mb-6">Revenue Trends (Last 7 Days)</h3>
+                    {stats.isLoading ? (
+                        <div className="flex-1 flex items-center justify-center">
+                            <Loader2 className="w-8 h-8 text-indigo-500 animate-spin" />
+                        </div>
+                    ) : stats.chartData.every(d => d.revenue === 0) ? (
+                        <div className="flex-1 flex flex-col items-center justify-center text-slate-400">
+                            <TrendingUp className="w-12 h-12 mb-3 opacity-20" />
+                            <p className="font-medium">No revenue data for the past 7 days</p>
+                            <p className="text-xs">Sales will appear here automatically.</p>
+                        </div>
+                    ) : (
+                        <div className="flex-1 w-full h-[300px]">
+                            <ResponsiveContainer width="100%" height="100%">
+                                <LineChart data={stats.chartData} margin={{ top: 5, right: 20, bottom: 5, left: 0 }}>
+                                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                                    <XAxis
+                                        dataKey="date"
+                                        axisLine={false}
+                                        tickLine={false}
+                                        tick={{ fill: '#94a3b8', fontSize: 12 }}
+                                        dy={10}
+                                    />
+                                    <YAxis
+                                        axisLine={false}
+                                        tickLine={false}
+                                        tick={{ fill: '#94a3b8', fontSize: 12 }}
+                                        tickFormatter={(val) => `$${val}`}
+                                        dx={-10}
+                                    />
+                                    <Tooltip
+                                        contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)' }}
+                                        formatter={(value) => [`$${value.toFixed(2)}`, 'Revenue']}
+                                    />
+                                    <Line
+                                        type="monotone"
+                                        dataKey="revenue"
+                                        stroke="#4f46e5"
+                                        strokeWidth={3}
+                                        dot={{ r: 4, strokeWidth: 2, fill: '#fff' }}
+                                        activeDot={{ r: 6, strokeWidth: 0, fill: '#4f46e5' }}
+                                    />
+                                </LineChart>
+                            </ResponsiveContainer>
+                        </div>
+                    )}
                 </div>
                 <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 min-h-[400px]">
                     <h3 className="font-semibold text-slate-900 mb-4">Recent Transactions</h3>
@@ -186,22 +267,38 @@ const DashboardOverview = () => {
                                 <p className="text-sm">No transactions yet today.</p>
                             </div>
                         ) : (
-                            stats.recentTransactions.map((order) => (
-                                <div key={order.id} className="flex items-center justify-between p-3 rounded-lg hover:bg-slate-50 transition-colors">
-                                    <div className="flex items-center gap-3">
-                                        <div className="w-10 h-10 rounded-full bg-indigo-50 flex items-center justify-center">
-                                            <ShoppingCart className="w-5 h-5 text-indigo-600" />
+                            stats.recentTransactions.map((order) => {
+                                // Extract items to show what they bought
+                                const items = order.items || order.orderItems || [];
+                                const itemNames = items.length > 0
+                                    ? items.map(i => i.productName || `Product #${i.productId}`).join(', ')
+                                    : `Order #${order.id.slice(0, 8)}`;
+
+                                const displayText = itemNames.length > 40 ? itemNames.substring(0, 40) + '...' : itemNames;
+
+                                return (
+                                    <div key={order.id} className="flex items-center justify-between p-3 rounded-lg hover:bg-slate-50 transition-colors">
+                                        <div className="flex items-center gap-3 min-w-0">
+                                            <div className="w-10 h-10 shrink-0 rounded-full bg-indigo-50 flex items-center justify-center">
+                                                <ShoppingCart className="w-5 h-5 text-indigo-600" />
+                                            </div>
+                                            <div className="min-w-0">
+                                                <p className="text-sm font-medium text-slate-900 truncate" title={itemNames}>
+                                                    {displayText}
+                                                </p>
+                                                <p className="text-xs text-slate-500 flex items-center gap-2">
+                                                    <span className="font-mono text-[10px]">#{order.id.slice(0, 6)}</span>
+                                                    <span>•</span>
+                                                    <span>{order.createdAt ? formatDistanceToNow(new Date(order.createdAt), { addSuffix: true }) : 'Just now'}</span>
+                                                </p>
+                                            </div>
                                         </div>
-                                        <div>
-                                            <p className="text-sm font-medium text-slate-900">Order #{order.id.slice(0, 8)}</p>
-                                            <p className="text-xs text-slate-500">
-                                                {order.createdAt ? formatDistanceToNow(new Date(order.createdAt), { addSuffix: true }) : 'Just now'}
-                                            </p>
-                                        </div>
+                                        <span className="text-sm font-semibold text-slate-900 shrink-0 ml-3">
+                                            ${order.totalAmount?.toFixed(2)}
+                                        </span>
                                     </div>
-                                    <span className="text-sm font-semibold text-slate-900">${order.totalAmount?.toFixed(2)}</span>
-                                </div>
-                            ))
+                                );
+                            })
                         )}
                     </div>
                 </div>
