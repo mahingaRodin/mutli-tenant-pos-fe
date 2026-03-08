@@ -5,7 +5,8 @@ import {
     TrendingUp,
     Users,
     Loader2,
-    AlertCircle
+    AlertCircle,
+    Settings
 } from 'lucide-react';
 import { orderApi } from '../../lib/api/orders';
 import { useAuthStore } from '../../store/useAuthStore';
@@ -13,31 +14,38 @@ import { formatDistanceToNow, format, parseISO, startOfToday, subDays } from 'da
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { customerApi } from '../../lib/api/customers';
 import { shiftReportApi } from '../../lib/api/shiftReports';
+import { useUIStore } from '../../store/useUIStore';
+import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 
-const StatCard = ({ title, value, change, icon: Icon, trend, isLoading }) => (
-    <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 flex items-start justify-between">
-        <div>
-            <p className="text-sm font-medium text-slate-500 mb-1">{title}</p>
-            {isLoading ? (
-                <div className="h-8 w-24 bg-slate-100 animate-pulse rounded" />
-            ) : (
-                <>
-                    <h3 className="text-2xl font-bold text-slate-900">{value}</h3>
-                    <div className={`flex items-center mt-2 text-sm ${trend === 'up' ? 'text-emerald-600' : 'text-red-600'}`}>
-                        <TrendingUp className={`w-4 h-4 mr-1 ${trend === 'down' && 'rotate-180'}`} />
-                        <span>{change}</span>
-                        <span className="text-slate-400 ml-1">vs last month</span>
-                    </div>
-                </>
-            )}
+const StatCard = ({ title, value, change, icon: Icon, trend, isLoading }) => {
+    const { t } = useTranslation();
+    return (
+        <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 flex items-start justify-between transition-colors duration-300">
+            <div>
+                <p className="text-sm font-medium text-slate-500 dark:text-slate-400 mb-1">{title}</p>
+                {isLoading ? (
+                    <div className="h-8 w-24 bg-slate-100 dark:bg-slate-800 animate-pulse rounded" />
+                ) : (
+                    <>
+                        <h3 className="text-2xl font-bold text-slate-900 dark:text-white">{value}</h3>
+                        <div className={`flex items-center mt-2 text-sm ${trend === 'up' ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600 dark:text-red-400'}`}>
+                            <TrendingUp className={`w-4 h-4 mr-1 ${trend === 'down' && 'rotate-180'}`} />
+                            <span>{change}</span>
+                            <span className="text-slate-400 dark:text-slate-500 ml-1">{t('common.vsLastMonth')}</span>
+                        </div>
+                    </>
+                )}
+            </div>
+            <div className={`p-3 rounded-xl ${trend === 'up' ? 'bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400' : 'bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400'}`}>
+                <Icon className="w-6 h-6" />
+            </div>
         </div>
-        <div className={`p-3 rounded-xl ${trend === 'up' ? 'bg-emerald-50 text-emerald-600' : 'bg-red-50 text-red-600'}`}>
-            <Icon className="w-6 h-6" />
-        </div>
-    </div>
-);
+    );
+};
 
 const DashboardOverview = () => {
+    const { t } = useTranslation();
     const [stats, setStats] = useState({
         todayRevenue: 0,
         totalRevenue: 0,
@@ -51,6 +59,7 @@ const DashboardOverview = () => {
     });
 
     const user = useAuthStore((state) => state.user);
+    const theme = useUIStore((state) => state.theme);
     const branchId = user?.branchId;
 
     const fetchDashboardData = useCallback(async () => {
@@ -163,14 +172,14 @@ const DashboardOverview = () => {
         <div className="space-y-6 max-w-7xl mx-auto">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
-                    <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Dashboard Overview</h1>
-                    <p className="text-slate-500">Welcome back, {user?.firstName || 'User'}! Here's what's happening today.</p>
+                    <h1 className="text-2xl font-bold text-slate-900 dark:text-white tracking-tight">{t('common.dashboard')}</h1>
+                    <p className="text-slate-500 dark:text-slate-400">{t('common.welcomeBack')}, {user?.firstName || 'User'}! {t('common.heresWhatHappening')}.</p>
                 </div>
                 <button
                     onClick={fetchDashboardData}
-                    className="p-2 hover:bg-slate-100 rounded-full transition-colors"
+                    className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full transition-colors"
                 >
-                    <TrendingUp className="w-5 h-5 text-slate-400" />
+                    <TrendingUp className="w-5 h-5 text-slate-400 dark:text-slate-500" />
                 </button>
             </div>
 
@@ -186,8 +195,8 @@ const DashboardOverview = () => {
                 <div className="bg-gradient-to-r from-indigo-600 to-purple-700 p-6 rounded-3xl shadow-xl shadow-indigo-100/50 text-white flex flex-col md:flex-row items-center justify-between gap-6 overflow-hidden relative">
                     <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -mr-32 -mt-32 blur-3xl"></div>
                     <div className="relative z-10">
-                        <h2 className="text-xl font-bold mb-1">Administrative Quick Actions</h2>
-                        <p className="text-indigo-100 text-sm">Efficiently manage your store operations from here.</p>
+                        <h2 className="text-xl font-bold mb-1">{t('common.adminQuickActions')}</h2>
+                        <p className="text-indigo-100 text-sm">{t('common.manageOpsEfficiently')}.</p>
                     </div>
                     <div className="flex gap-4 relative z-10">
                         <a
@@ -195,11 +204,15 @@ const DashboardOverview = () => {
                             className="bg-white text-indigo-700 px-6 py-3 rounded-xl font-bold flex items-center gap-2 hover:bg-slate-50 transition-all shadow-lg active:scale-95"
                         >
                             <ShoppingCart className="w-5 h-5" />
-                            Launch POS Terminal
+                            {t('common.launchPOS')}
                         </a>
-                        <button className="bg-indigo-500/30 backdrop-blur-md border border-indigo-400/30 text-white px-6 py-3 rounded-xl font-bold hover:bg-indigo-500/40 transition-all active:scale-95">
-                            System Settings
-                        </button>
+                        <Link
+                            to="/dashboard/settings"
+                            className="bg-indigo-500/30 backdrop-blur-md border border-indigo-400/30 text-white px-6 py-3 rounded-xl font-bold hover:bg-indigo-500/40 transition-all active:scale-95 flex items-center gap-2"
+                        >
+                            <Settings className="w-5 h-5" />
+                            {t('common.systemSettings')}
+                        </Link>
                     </div>
                 </div>
             )}
@@ -207,7 +220,7 @@ const DashboardOverview = () => {
             {/* Stats Grid */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
                 <StatCard
-                    title="Total Revenue"
+                    title={t('common.totalRevenue')}
                     value={`$${stats.totalRevenue.toLocaleString(undefined, { minimumFractionDigits: 2 })}`}
                     change="+15.3%"
                     icon={DollarSign}
@@ -215,7 +228,7 @@ const DashboardOverview = () => {
                     isLoading={stats.isLoading}
                 />
                 <StatCard
-                    title="Today's Orders"
+                    title={t('common.todayOrders')}
                     value={stats.todayOrders.toString()}
                     change={stats.todayOrders > 0 ? "+12.5%" : "0.0%"}
                     icon={ShoppingCart}
@@ -223,7 +236,7 @@ const DashboardOverview = () => {
                     isLoading={stats.isLoading}
                 />
                 <StatCard
-                    title="Active Customers"
+                    title={t('common.activeCustomers')}
                     value={stats.activeCustomers.toLocaleString()}
                     change="+4.3%"
                     icon={Users}
@@ -231,7 +244,7 @@ const DashboardOverview = () => {
                     isLoading={stats.isLoading}
                 />
                 <StatCard
-                    title="Avg. Order Value"
+                    title={t('common.avgOrderValue')}
                     value={`$${stats.avgOrderValue.toFixed(2)}`}
                     change="+2.1%"
                     icon={TrendingUp}
@@ -242,8 +255,8 @@ const DashboardOverview = () => {
 
             {/* Charts & Recent Activity */}
             <div className="grid lg:grid-cols-3 gap-6">
-                <div className="lg:col-span-2 bg-white rounded-2xl shadow-sm border border-slate-200 p-6 flex flex-col min-h-[400px]">
-                    <h3 className="font-semibold text-slate-900 mb-6">Revenue Trends (Last 14 Days)</h3>
+                <div className="lg:col-span-2 bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 p-6 flex flex-col min-h-[400px] transition-colors duration-300">
+                    <h3 className="font-semibold text-slate-900 dark:text-white mb-6">{t('common.revenueTrends')}</h3>
                     {stats.isLoading ? (
                         <div className="flex-1 flex items-center justify-center">
                             <Loader2 className="w-8 h-8 text-indigo-500 animate-spin" />
@@ -251,14 +264,14 @@ const DashboardOverview = () => {
                     ) : stats.chartData.every(d => d.revenue === 0) ? (
                         <div className="flex-1 flex flex-col items-center justify-center text-slate-400">
                             <TrendingUp className="w-12 h-12 mb-3 opacity-20" />
-                            <p className="font-medium">No revenue data for the past 14 days</p>
-                            <p className="text-xs">Sales will appear here automatically.</p>
+                            <p className="font-medium">{t('common.noRevenueData')}</p>
+                            <p className="text-xs">{t('common.salesAppearHere')}.</p>
                         </div>
                     ) : (
                         <div className="flex-1 w-full h-[300px]">
                             <ResponsiveContainer width="100%" height="100%">
                                 <LineChart data={stats.chartData} margin={{ top: 5, right: 20, bottom: 5, left: 0 }}>
-                                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={theme === 'dark' ? '#1e293b' : '#f1f5f9'} />
                                     <XAxis
                                         dataKey="date"
                                         axisLine={false}
@@ -274,7 +287,13 @@ const DashboardOverview = () => {
                                         dx={-10}
                                     />
                                     <Tooltip
-                                        contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)' }}
+                                        contentStyle={{
+                                            borderRadius: '12px',
+                                            border: 'none',
+                                            boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)',
+                                            backgroundColor: theme === 'dark' ? '#0f172a' : '#fff',
+                                            color: theme === 'dark' ? '#f8fafc' : '#0f172a'
+                                        }}
                                         formatter={(value) => [`$${value.toFixed(2)}`, 'Revenue']}
                                     />
                                     <Line
@@ -290,8 +309,8 @@ const DashboardOverview = () => {
                         </div>
                     )}
                 </div>
-                <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 min-h-[400px]">
-                    <h3 className="font-semibold text-slate-900 mb-4">Recent Transactions</h3>
+                <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 p-6 min-h-[400px] transition-colors duration-300">
+                    <h3 className="font-semibold text-slate-900 dark:text-white mb-4">{t('common.recentTransactions')}</h3>
                     <div className="space-y-4">
                         {stats.isLoading ? (
                             [1, 2, 3, 4, 5].map(i => (
@@ -305,7 +324,7 @@ const DashboardOverview = () => {
                             ))
                         ) : stats.recentTransactions.length === 0 ? (
                             <div className="text-center py-20 text-slate-400">
-                                <p className="text-sm">No transactions yet today.</p>
+                                <p className="text-sm">{t('common.noTransactionsToday')}.</p>
                             </div>
                         ) : (
                             stats.recentTransactions.map((order) => {
@@ -318,13 +337,13 @@ const DashboardOverview = () => {
                                 const displayText = itemNames.length > 40 ? itemNames.substring(0, 40) + '...' : itemNames;
 
                                 return (
-                                    <div key={order.id} className="flex items-center justify-between p-3 rounded-lg hover:bg-slate-50 transition-colors">
+                                    <div key={order.id} className="flex items-center justify-between p-3 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
                                         <div className="flex items-center gap-3 min-w-0">
-                                            <div className="w-10 h-10 shrink-0 rounded-full bg-indigo-50 flex items-center justify-center">
-                                                <ShoppingCart className="w-5 h-5 text-indigo-600" />
+                                            <div className="w-10 h-10 shrink-0 rounded-full bg-indigo-50 dark:bg-indigo-900/20 flex items-center justify-center">
+                                                <ShoppingCart className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
                                             </div>
                                             <div className="min-w-0">
-                                                <p className="text-sm font-medium text-slate-900 truncate" title={itemNames}>
+                                                <p className="text-sm font-medium text-slate-900 dark:text-white truncate" title={itemNames}>
                                                     {(() => {
                                                         const items = order.items || order.orderItems || [];
                                                         if (items.length > 0) {
@@ -334,7 +353,7 @@ const DashboardOverview = () => {
                                                         return displayText;
                                                     })()}
                                                 </p>
-                                                <p className="text-xs text-slate-500 flex items-center gap-2">
+                                                <p className="text-xs text-slate-500 dark:text-slate-400 flex items-center gap-2">
                                                     <span className="font-mono text-[10px]">#{order.id.slice(0, 6)}</span>
                                                     <span>•</span>
                                                     <span>{(() => {
@@ -350,7 +369,7 @@ const DashboardOverview = () => {
                                                 </p>
                                             </div>
                                         </div>
-                                        <span className="text-sm font-semibold text-slate-900 shrink-0 ml-3">
+                                        <span className="text-sm font-semibold text-slate-900 dark:text-white shrink-0 ml-3">
                                             ${order.totalAmount?.toFixed(2)}
                                         </span>
                                     </div>

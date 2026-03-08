@@ -14,6 +14,7 @@ import ProductsPage from '../pages/dashboard/ProductsPage';
 import StoresPage from '../pages/dashboard/StoresPage';
 import InventoryPage from '../pages/dashboard/InventoryPage';
 import OrdersPage from '../pages/dashboard/OrdersPage';
+import SettingsPage from '../pages/dashboard/SettingsPage';
 import PosTerminal from '../pages/pos/PosTerminal';
 import LandingPage from '../pages/LandingPage';
 
@@ -86,6 +87,10 @@ export const router = createBrowserRouter([
             {
                 path: 'orders',
                 element: <OrdersPage />,
+            },
+            {
+                path: 'settings',
+                element: <SettingsPage />,
             },
         ],
     },

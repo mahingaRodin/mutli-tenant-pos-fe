@@ -9,9 +9,9 @@ const AuthLayout = ({ children }) => {
     // Redirect logic removed to prevent "locked in" loops
 
     return (
-        <div className="min-h-screen grid lg:grid-cols-2 bg-slate-50">
+        <div className="min-h-screen grid lg:grid-cols-2 bg-slate-50 dark:bg-slate-950 transition-colors">
             {/* Left side - Branding/Image (Hidden on mobile) */}
-            <div className="hidden lg:flex flex-col justify-center items-center bg-slate-900 text-white p-12 relative overflow-hidden">
+            <div className="hidden lg:flex flex-col justify-center items-center bg-slate-900 dark:bg-black text-white p-12 relative overflow-hidden">
                 <div className="absolute inset-0 bg-gradient-to-br from-indigo-600/20 to-purple-600/20 mix-blend-overlay"></div>
                 <div className="z-10 max-w-md text-center">
                     <h1 className="text-4xl font-bold mb-6 tracking-tight">SaaS POS System</h1>

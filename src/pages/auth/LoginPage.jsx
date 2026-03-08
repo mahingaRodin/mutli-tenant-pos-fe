@@ -4,8 +4,10 @@ import { useAuthStore } from '../../store/useAuthStore';
 import { Button } from '../../components/ui/button';
 import { ShoppingCart, LogIn, Mail, Lock, AlertCircle } from 'lucide-react';
 import { authApi } from '../../lib/api/auth';
+import { useTranslation } from 'react-i18next';
 
 const LoginPage = () => {
+    const { t } = useTranslation();
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [isLoading, setIsLoading] = useState(false);
@@ -55,8 +57,8 @@ const LoginPage = () => {
                 <div className="h-14 w-14 bg-indigo-100 rounded-2xl flex items-center justify-center mb-2">
                     <ShoppingCart className="w-8 h-8 text-indigo-600" />
                 </div>
-                <h2 className="text-3xl font-bold text-slate-900 tracking-tight">Welcome back</h2>
-                <p className="text-slate-500">Sign in to your tenant account</p>
+                <h2 className="text-3xl font-bold text-slate-900 tracking-tight">{t('auth.welcomeBack')}</h2>
+                <p className="text-slate-500">{t('auth.signInToAccount')}</p>
             </div>
 
             {error && (
@@ -68,7 +70,7 @@ const LoginPage = () => {
 
             <form onSubmit={handleSubmit} className="space-y-5">
                 <div className="space-y-1">
-                    <label className="text-sm font-medium text-slate-700 block" htmlFor="email">Email</label>
+                    <label className="text-sm font-medium text-slate-700 block" htmlFor="email">{t('auth.email')}</label>
                     <div className="relative">
                         <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                             <Mail className="h-5 w-5 text-slate-400" />
@@ -87,8 +89,8 @@ const LoginPage = () => {
 
                 <div className="space-y-1">
                     <div className="flex items-center justify-between">
-                        <label className="text-sm font-medium text-slate-700 block" htmlFor="password">Password</label>
-                        <a href="#" className="text-sm text-indigo-600 hover:text-indigo-500 font-medium">Forgot password?</a>
+                        <label className="text-sm font-medium text-slate-700 block" htmlFor="password">{t('auth.password')}</label>
+                        <a href="#" className="text-sm text-indigo-600 hover:text-indigo-500 font-medium">{t('auth.forgotPassword')}</a>
                     </div>
                     <div className="relative">
                         <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -115,7 +117,7 @@ const LoginPage = () => {
                         <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                     ) : (
                         <>
-                            Sign in <LogIn className="w-4 h-4 ml-1" />
+                            {t('auth.signIn')} <LogIn className="w-4 h-4 ml-1" />
                         </>
                     )}
                 </Button>
@@ -123,9 +125,9 @@ const LoginPage = () => {
 
             <div className="pt-4 text-center border-t border-slate-100">
                 <p className="text-sm text-slate-600">
-                    Don't have an account?{' '}
+                    {t('auth.dontHaveAccount')}{' '}
                     <Link to="/register" className="font-semibold text-indigo-600 hover:text-indigo-500">
-                        Sign up for free
+                        {t('auth.signUpForFree')}
                     </Link>
                 </p>
             </div>

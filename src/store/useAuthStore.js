@@ -11,6 +11,8 @@ export const useAuthStore = create(
                 set({ user: userData, token, isAuthenticated: true }),
             logout: () =>
                 set({ user: null, token: null, isAuthenticated: false }),
+            updateUser: (userData) =>
+                set((state) => ({ user: { ...state.user, ...userData } })),
         }),
         {
             name: 'auth-storage', // unique name for localStorage

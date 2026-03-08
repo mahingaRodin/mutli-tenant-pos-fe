@@ -3,8 +3,10 @@ import { Package, Search, ListFilter, ArrowUpDown, Loader2, AlertCircle, Refresh
 import { Button } from '../../components/ui/button';
 import { inventoryApi } from '../../lib/api/inventory';
 import { useAuthStore } from '../../store/useAuthStore';
+import { useTranslation } from 'react-i18next';
 
 const InventoryPage = () => {
+    const { t } = useTranslation();
     const [inventory, setInventory] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -38,31 +40,31 @@ const InventoryPage = () => {
 
     const filteredInventory = inventory.filter(item =>
         item.product?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        item.product?.code?.toLowerCase().includes(searchTerm.toLowerCase())
+        item.product?.sku?.toLowerCase().includes(searchTerm.toLowerCase())
     );
 
     return (
         <div className="space-y-6">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
-                    <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Inventory Management</h1>
-                    <p className="text-slate-500">Monitor and update stock levels across your branch.</p>
+                    <h1 className="text-2xl font-bold text-slate-900 dark:text-white tracking-tight">{t('common.inventoryManagement')}</h1>
+                    <p className="text-slate-500 dark:text-slate-400">{t('common.monitorStockLevels')}.</p>
                 </div>
                 <div className="flex items-center gap-2">
                     <Button variant="outline" size="sm" onClick={fetchInventory} className="gap-2">
                         <RefreshCw className={`w-4 h-4 ${isLoading && 'animate-spin'}`} />
-                        Refresh
+                        {t('common.refreshData')}
                     </Button>
                 </div>
             </div>
 
-            <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
-                <div className="p-4 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 overflow-hidden transition-colors">
+                <div className="p-4 border-b border-slate-100 dark:border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                     <div className="relative flex-1 max-w-md">
                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4" />
                         <input
-                            placeholder="Filter by product name or SKU..."
-                            className="w-full pl-10 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-indigo-600/20 focus:border-indigo-600 transition-all"
+                            placeholder={t('common.filterByNameOrSku') + "..."}
+                            className="w-full pl-10 pr-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-sm dark:text-slate-200 outline-none focus:ring-2 focus:ring-indigo-600/20 focus:border-indigo-600 transition-all placeholder:text-slate-400 dark:placeholder:text-slate-500"
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
                         />
@@ -72,17 +74,17 @@ const InventoryPage = () => {
                 <div className="overflow-x-auto">
                     <table className="w-full text-left border-collapse">
                         <thead>
-                            <tr className="bg-slate-50/50 border-b border-slate-100">
-                                <th className="px-6 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">Product</th>
-                                <th className="px-6 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">SKU</th>
-                                <th className="px-6 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider text-center">Status</th>
-                                <th className="px-6 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider text-right flex items-center justify-end gap-1">
-                                    Current Stock <ArrowUpDown className="w-3 h-3" />
+                            <tr className="bg-slate-50/50 dark:bg-slate-800/50 border-b border-slate-100 dark:border-slate-800">
+                                <th className="px-6 py-4 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">{t('common.product')}</th>
+                                <th className="px-6 py-4 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">{t('common.sku')}</th>
+                                <th className="px-6 py-4 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider text-center">{t('common.status')}</th>
+                                <th className="px-6 py-4 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider text-right flex items-center justify-end gap-1">
+                                    {t('common.currentStock')} <ArrowUpDown className="w-3 h-3" />
                                 </th>
-                                <th className="px-6 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider text-right">Actions</th>
+                                <th className="px-6 py-4 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider text-right">{t('common.actions')}</th>
                             </tr>
                         </thead>
-                        <tbody className="divide-y divide-slate-100">
+                        <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
                             {isLoading ? (
                                 Array(5).fill(0).map((_, i) => (
                                     <tr key={i} className="animate-pulse">
@@ -104,28 +106,47 @@ const InventoryPage = () => {
                                 </tr>
                             ) : (
                                 filteredInventory.map((item) => (
-                                    <tr key={item.id} className="hover:bg-slate-50/50 transition-colors group">
+                                    <tr key={item.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/50 transition-colors group">
                                         <td className="px-6 py-4">
-                                            <div className="font-medium text-slate-900">{item.product?.name}</div>
-                                            <div className="text-xs text-slate-500">{item.product?.categoryName}</div>
+                                            <div className="flex items-center gap-3">
+                                                <div className="w-8 h-8 rounded-lg bg-slate-100 dark:bg-slate-800 flex items-center justify-center overflow-hidden border border-slate-200 dark:border-slate-800 shrink-0">
+                                                    {item.product?.image ? (
+                                                        <img
+                                                            src={item.product.image}
+                                                            alt={item.product.name}
+                                                            className="w-full h-full object-cover"
+                                                            onError={(e) => {
+                                                                e.target.onerror = null;
+                                                                e.target.src = 'https://ui-avatars.com/api/?name=' + encodeURIComponent(item.product.name) + '&background=6366f1&color=fff';
+                                                            }}
+                                                        />
+                                                    ) : (
+                                                        <Package className="w-4 h-4 text-slate-400 dark:text-slate-500" />
+                                                    )}
+                                                </div>
+                                                <div>
+                                                    <div className="font-medium text-slate-900 dark:text-white">{item.product?.name}</div>
+                                                    <div className="text-xs text-slate-500 dark:text-slate-400">{item.product?.categoryName}</div>
+                                                </div>
+                                            </div>
                                         </td>
-                                        <td className="px-6 py-4 text-sm text-slate-600 font-mono">{item.product?.code || 'N/A'}</td>
+                                        <td className="px-6 py-4 text-sm text-slate-600 dark:text-slate-300 font-mono">{item.product?.sku || 'N/A'}</td>
                                         <td className="px-6 py-4 text-center">
                                             <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${item.quantity > 10 ? 'bg-emerald-50 text-emerald-700' :
                                                 item.quantity > 0 ? 'bg-amber-50 text-amber-700' :
                                                     'bg-red-50 text-red-700'
                                                 }`}>
-                                                {item.quantity > 10 ? 'In Stock' : item.quantity > 0 ? 'Low Stock' : 'Out of Stock'}
+                                                {item.quantity > 10 ? t('common.inStock') : item.quantity > 0 ? t('common.lowStock') : t('common.outOfStock')}
                                             </span>
                                         </td>
                                         <td className="px-6 py-4 text-right">
-                                            <span className={`text-sm font-bold ${item.quantity <= 10 ? 'text-amber-600' : 'text-slate-900'}`}>
+                                            <span className={`text-sm font-bold ${item.quantity <= 10 ? 'text-amber-600 dark:text-amber-400' : 'text-slate-900 dark:text-slate-100'}`}>
                                                 {item.quantity}
                                             </span>
                                         </td>
                                         <td className="px-6 py-4 text-right">
                                             <Button variant="ghost" size="sm" className="text-indigo-600 hover:text-indigo-700 hover:bg-indigo-50">
-                                                Adjust
+                                                {t('common.adjust')}
                                             </Button>
                                         </td>
                                     </tr>

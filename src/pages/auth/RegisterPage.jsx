@@ -4,6 +4,7 @@ import { useAuthStore } from '../../store/useAuthStore';
 import { Button } from '../../components/ui/button';
 import { Store, UserPlus, Mail, Lock, Building2, AlertCircle } from 'lucide-react';
 import { authApi } from '../../lib/api/auth';
+import { useTranslation } from 'react-i18next';
 
 const RegisterPage = () => {
     const [formData, setFormData] = useState({
@@ -14,6 +15,7 @@ const RegisterPage = () => {
     });
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState('');
+    const { t } = useTranslation();
     const login = useAuthStore((state) => state.login);
     const navigate = useNavigate();
 
@@ -67,8 +69,8 @@ const RegisterPage = () => {
                 <div className="h-14 w-14 bg-indigo-100 rounded-2xl flex items-center justify-center mb-2">
                     <Store className="w-8 h-8 text-indigo-600" />
                 </div>
-                <h2 className="text-3xl font-bold text-slate-900 tracking-tight">Create an account</h2>
-                <p className="text-slate-500">Start your 14-day free trial today</p>
+                <h2 className="text-3xl font-bold text-slate-900 tracking-tight">{t('auth.createAccount')}</h2>
+                <p className="text-slate-500">{t('auth.startTrial')}</p>
             </div>
 
             {error && (
@@ -80,7 +82,7 @@ const RegisterPage = () => {
 
             <form onSubmit={handleSubmit} className="space-y-4">
                 <div className="space-y-1">
-                    <label className="text-sm font-medium text-slate-700 block" htmlFor="storeName">Business Name</label>
+                    <label className="text-sm font-medium text-slate-700 block" htmlFor="storeName">{t('auth.businessName')}</label>
                     <div className="relative">
                         <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                             <Building2 className="h-5 w-5 text-slate-400" />
@@ -98,7 +100,7 @@ const RegisterPage = () => {
                 </div>
 
                 <div className="space-y-1">
-                    <label className="text-sm font-medium text-slate-700 block" htmlFor="email">Work Email</label>
+                    <label className="text-sm font-medium text-slate-700 block" htmlFor="email">{t('auth.workEmail')}</label>
                     <div className="relative">
                         <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                             <Mail className="h-5 w-5 text-slate-400" />
@@ -116,7 +118,7 @@ const RegisterPage = () => {
                 </div>
 
                 <div className="space-y-1">
-                    <label className="text-sm font-medium text-slate-700 block" htmlFor="password">Password</label>
+                    <label className="text-sm font-medium text-slate-700 block" htmlFor="password">{t('auth.password')}</label>
                     <div className="relative">
                         <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                             <Lock className="h-5 w-5 text-slate-400" />
@@ -135,7 +137,7 @@ const RegisterPage = () => {
                 </div>
 
                 <div className="space-y-1 mb-2">
-                    <label className="text-sm font-medium text-slate-700 block" htmlFor="confirmPassword">Confirm Password</label>
+                    <label className="text-sm font-medium text-slate-700 block" htmlFor="confirmPassword">{t('auth.confirmPassword')}</label>
                     <div className="relative">
                         <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                             <Lock className="h-5 w-5 text-slate-400" />
@@ -161,7 +163,7 @@ const RegisterPage = () => {
                         <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                     ) : (
                         <>
-                            Register Account <UserPlus className="w-4 h-4 ml-1" />
+                            {t('auth.registerAccount')} <UserPlus className="w-4 h-4 ml-1" />
                         </>
                     )}
                 </Button>
@@ -169,9 +171,9 @@ const RegisterPage = () => {
 
             <div className="pt-4 text-center border-t border-slate-100">
                 <p className="text-sm text-slate-600">
-                    Already have an account?{' '}
+                    {t('auth.alreadyHaveAccount')}{' '}
                     <Link to="/login" className="font-semibold text-indigo-600 hover:text-indigo-500">
-                        Sign in
+                        {t('auth.signIn')}
                     </Link>
                 </p>
             </div>

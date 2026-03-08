@@ -7,8 +7,10 @@ import { categoryApi } from '../../lib/api/categories';
 import { orderApi } from '../../lib/api/orders';
 import { inventoryApi } from '../../lib/api/inventory';
 import { useAuthStore } from '../../store/useAuthStore';
+import { useTranslation } from 'react-i18next';
 
 const PosTerminal = () => {
+    const { t } = useTranslation();
     const [categories, setCategories] = useState(['All']);
     const [selectedCategory, setSelectedCategory] = useState('All');
     const [products, setProducts] = useState([]);
@@ -26,7 +28,7 @@ const PosTerminal = () => {
 
     const fetchInitialData = useCallback(async () => {
         if (!storeId) {
-            setError('No store associated with your account. Please contact admin.');
+            setError(t('pos.noStoreError'));
             setIsLoading(false);
             return;
         }
@@ -49,7 +51,7 @@ const PosTerminal = () => {
             const enrichedProducts = productList.map(product => {
                 const inv = inventoryList.find(i => i.product_id === product.id || i.productId === product.id);
                 // Be very defensive about finding the price field
-                const basePrice = product.sellingPrice ?? product.selling_price ?? product.price ?? product.mrp ?? 0;
+                const basePrice = product.sellingPrice || product.price || product.mrp || 0;
                 return {
                     ...product,
                     stock: Number(inv?.quantity ?? 0),
@@ -61,7 +63,7 @@ const PosTerminal = () => {
             setProducts(enrichedProducts);
         } catch (err) {
             console.error('Failed to fetch POS data:', err);
-            setError('Terminal connection issues. Please check your connection or store assignment.');
+            setError(t('pos.connectionError'));
         } finally {
             setIsLoading(false);
         }
@@ -123,14 +125,14 @@ const PosTerminal = () => {
             };
 
             await orderApi.create(orderDto);
-            setOrderSuccess(`Order completed! Total: $${total.toFixed(2)}`);
+            setOrderSuccess(t('pos.orderCompleted', { total: total.toFixed(2) }));
             setCart([]);
 
             // Auto hide success after 3 seconds
             setTimeout(() => setOrderSuccess(null), 3000);
         } catch (err) {
             console.error('Checkout failed:', err);
-            setError('Failed to process order. Check inventory or payment connection.');
+            setError(t('pos.checkoutError'));
         } finally {
             setIsProcessing(false);
         }
@@ -149,15 +151,15 @@ const PosTerminal = () => {
     return (
         <div className="flex-1 flex overflow-hidden w-full h-full">
             {/* Left Area: Product Grid */}
-            <div className="flex-1 flex flex-col bg-slate-50 min-w-0">
+            <div className="flex-1 flex flex-col bg-slate-50 dark:bg-slate-950 min-w-0 transition-colors">
                 {/* Search & Categories Bar */}
-                <div className="bg-white border-b border-slate-200 shrink-0">
-                    <div className="p-4 border-b border-slate-100">
+                <div className="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 shrink-0 transition-colors">
+                    <div className="p-4 border-b border-slate-100 dark:border-slate-800">
                         <div className="relative">
                             <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5" />
                             <input
-                                placeholder="Search by name or scan barcode..."
-                                className="w-full pl-10 pr-4 py-2 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-indigo-600 transition-all text-sm"
+                                placeholder={t('pos.searchPlaceholder')}
+                                className="w-full pl-10 pr-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg outline-none focus:ring-2 focus:ring-indigo-600 transition-all text-sm dark:text-slate-200 placeholder:text-slate-400 dark:placeholder:text-slate-500"
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
                             />
@@ -169,11 +171,11 @@ const PosTerminal = () => {
                                 key={cat}
                                 onClick={() => setSelectedCategory(cat)}
                                 className={`px-4 py-1.5 rounded-full whitespace-nowrap text-sm font-medium transition-all ${selectedCategory === cat
-                                    ? 'bg-indigo-600 text-white shadow-md shadow-indigo-200'
-                                    : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                                    ? 'bg-indigo-600 text-white shadow-md shadow-indigo-200 dark:shadow-none'
+                                    : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700'
                                     }`}
                             >
-                                {cat}
+                                {cat === 'All' ? t('common.all') : cat}
                             </button>
                         ))}
                     </div>
@@ -191,24 +193,24 @@ const PosTerminal = () => {
                     {isLoading ? (
                         <div className="h-full flex flex-col items-center justify-center text-slate-400 gap-3">
                             <Loader2 className="w-10 h-10 animate-spin text-indigo-500" />
-                            <p>Loading terminal resources...</p>
+                            <p>{t('pos.loadingTerminal')}</p>
                         </div>
                     ) : error ? (
                         <div className="h-full flex flex-col items-center justify-center text-amber-600 gap-3 border-2 border-dashed border-amber-200 rounded-3xl p-8 text-center">
                             <AlertCircle className="w-12 h-12" />
                             <p className="font-medium">{error}</p>
                             <div className="flex gap-4">
-                                <Button variant="outline" onClick={fetchInitialData}>Try Reconnect</Button>
+                                <Button variant="outline" onClick={fetchInitialData}>{t('common.tryReconnect')}</Button>
                                 <Button variant="destructive" onClick={() => useAuthStore.getState().logout()} className="bg-red-600">
-                                    Logout & Fix Account
+                                    {t('pos.logoutToFix')}
                                 </Button>
                             </div>
                         </div>
                     ) : (
                         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 text-center">
                             {filteredProducts.length === 0 ? (
-                                <div className="col-span-full py-20 text-slate-400">
-                                    No products found matching filters.
+                                <div className="col-span-full py-20 text-slate-400 dark:text-slate-600">
+                                    {t('pos.noProductsMatch')}
                                 </div>
                             ) : (
                                 filteredProducts.map(product => (
@@ -216,27 +218,39 @@ const PosTerminal = () => {
                                         key={product.id}
                                         onClick={() => addToCart(product)}
                                         disabled={product.stock <= 0}
-                                        className={`bg-white rounded-2xl shadow-sm border border-slate-200 p-4 text-left transition-all active:scale-95 group relative overflow-hidden ${product.stock <= 0 ? 'opacity-60 grayscale' : 'hover:shadow-md hover:border-indigo-300'}`}
+                                        className={`bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 p-4 text-left transition-all active:scale-95 group relative overflow-hidden ${product.stock <= 0 ? 'opacity-60 grayscale' : 'hover:shadow-md dark:hover:shadow-indigo-900/10 hover:border-indigo-300 dark:hover:border-indigo-800'}`}
                                     >
-                                        <div className="aspect-square bg-slate-100 rounded-xl mb-3 flex items-center justify-center group-hover:bg-indigo-50 transition-colors">
-                                            <Package className={`w-10 h-10 ${product.stock <= 0 ? 'text-slate-300' : 'text-slate-400 group-hover:text-indigo-400'}`} />
+                                        <div className="aspect-square bg-slate-100 dark:bg-slate-800 rounded-xl mb-3 flex items-center justify-center group-hover:bg-indigo-50 dark:group-hover:bg-indigo-900/20 transition-colors overflow-hidden relative">
+                                            {product.image ? (
+                                                <img
+                                                    src={product.image}
+                                                    alt={product.name}
+                                                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                                                    onError={(e) => {
+                                                        e.target.onerror = null;
+                                                        e.target.src = 'https://ui-avatars.com/api/?name=' + encodeURIComponent(product.name) + '&background=6366f1&color=fff';
+                                                    }}
+                                                />
+                                            ) : (
+                                                <Package className={`w-10 h-10 ${product.stock <= 0 ? 'text-slate-300 dark:text-slate-700' : 'text-slate-400 dark:text-slate-500 group-hover:text-indigo-400'}`} />
+                                            )}
                                             {product.stock <= 0 && (
-                                                <div className="absolute inset-0 flex items-center justify-center bg-white/20 backdrop-blur-[1px]">
-                                                    <span className="bg-red-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full rotate-[-15deg]">Out of Stock</span>
+                                                <div className="absolute inset-0 flex items-center justify-center bg-white/20 dark:bg-slate-900/40 backdrop-blur-[1px]">
+                                                    <span className="bg-red-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full rotate-[-15deg] shadow-lg shadow-red-500/20">{t('pos.outOfStock')}</span>
                                                 </div>
                                             )}
                                         </div>
-                                        <h3 className="font-semibold text-slate-900 truncate leading-tight">{product.name}</h3>
+                                        <h3 className="font-semibold text-slate-900 dark:text-white truncate leading-tight">{product.name}</h3>
                                         <div className="flex items-center justify-between mt-1 mb-2">
-                                            <p className="text-xs text-slate-500 truncate">{product.categoryName || 'General'}</p>
-                                            <span className={`text-[10px] font-bold ${product.stock < 10 ? 'text-amber-500' : 'text-slate-400'}`}>
-                                                {product.stock} in stock
+                                            <p className="text-xs text-slate-500 dark:text-slate-400 truncate">{product.categoryName || 'General'}</p>
+                                            <span className={`text-[10px] font-bold ${product.stock < 10 ? 'text-amber-500' : 'text-slate-400 dark:text-slate-500'}`}>
+                                                {t('pos.stockCount', { count: product.stock })}
                                             </span>
                                         </div>
                                         <div className="flex items-center justify-between mt-auto">
-                                            <span className="font-bold text-indigo-700">${product.price?.toFixed(2)}</span>
-                                            <span className={`text-[10px] font-medium px-2 py-1 rounded-md ${product.stock > 0 ? 'bg-emerald-50 text-emerald-600' : 'bg-slate-100 text-slate-400'}`}>
-                                                {product.stock > 0 ? 'Available' : 'Unavailable'}
+                                            <span className="font-bold text-indigo-700 dark:text-indigo-400">${product.price?.toFixed(2)}</span>
+                                            <span className={`text-[10px] font-medium px-2 py-1 rounded-md ${product.stock > 0 ? 'bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400' : 'bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-600'}`}>
+                                                {product.stock > 0 ? t('pos.available') : t('pos.unavailable')}
                                             </span>
                                         </div>
                                     </button>
@@ -248,61 +262,61 @@ const PosTerminal = () => {
             </div>
 
             {/* Right Area: Cart Panel */}
-            <div className="w-[320px] lg:w-[400px] bg-white border-l border-slate-200 flex flex-col shrink-0 relative z-10 shadow-[0_0_40px_-15px_rgba(0,0,0,0.1)]">
+            <div className="w-[320px] lg:w-[400px] bg-white dark:bg-slate-900 border-l border-slate-200 dark:border-slate-800 flex flex-col shrink-0 relative z-10 shadow-[0_0_40px_-15px_rgba(0,0,0,0.1)] transition-colors">
 
                 {/* Cart Header */}
-                <div className="h-16 border-b border-slate-200 px-6 flex items-center justify-between shrink-0 bg-slate-50/50">
-                    <h2 className="text-lg font-bold text-slate-900">Current Order</h2>
+                <div className="h-16 border-b border-slate-200 dark:border-slate-800 px-6 flex items-center justify-between shrink-0 bg-slate-50/50 dark:bg-slate-800/50">
+                    <h2 className="text-lg font-bold text-slate-900 dark:text-white">{t('common.currentOrder')}</h2>
                     <Button
                         variant="ghost"
                         size="sm"
-                        className="text-red-500 hover:text-red-600 hover:bg-red-50"
+                        className="text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20"
                         onClick={() => setCart([])}
                         disabled={isProcessing}
                     >
-                        Clear
+                        {t('common.clear')}
                     </Button>
                 </div>
 
                 {/* Cart Items List */}
                 <div className="flex-1 overflow-y-auto p-4 space-y-3">
                     {cart.length === 0 ? (
-                        <div className="text-center py-20 text-slate-400 flex flex-col items-center">
-                            <ShoppingCart className="w-12 h-12 mb-3 text-slate-200" />
-                            <p className="font-medium">Cart is empty</p>
-                            <p className="text-sm">Select products to add</p>
+                        <div className="text-center py-20 text-slate-400 dark:text-slate-600 flex flex-col items-center">
+                            <ShoppingCart className="w-12 h-12 mb-3 text-slate-200 dark:text-slate-800" />
+                            <p className="font-medium">{t('common.cartEmpty')}</p>
+                            <p className="text-sm">{t('common.selectProducts')}</p>
                         </div>
                     ) : (
                         cart.map((item) => (
-                            <div key={item.id} className="flex items-start gap-3 p-3 bg-white border border-slate-100 rounded-xl shadow-sm group">
+                            <div key={item.id} className="flex items-start gap-3 p-3 bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700 rounded-xl shadow-sm group transition-colors">
                                 <div className="flex-1 min-w-0">
-                                    <h4 className="font-semibold text-slate-900 text-sm truncate">{item.name}</h4>
-                                    <div className="text-xs text-slate-500 mt-1 flex items-center gap-2">
-                                        <span className="font-medium text-slate-700">${(Number(item.price) || 0).toFixed(2)}</span>
+                                    <h4 className="font-semibold text-slate-900 dark:text-white text-sm truncate">{item.name}</h4>
+                                    <div className="text-xs text-slate-500 dark:text-slate-400 mt-1 flex items-center gap-2">
+                                        <span className="font-medium text-slate-700 dark:text-slate-300">${(Number(item.price) || 0).toFixed(2)}</span>
                                         <span>x</span>
-                                        <div className="flex items-center gap-2 bg-slate-50 rounded-md px-1 py-0.5">
+                                        <div className="flex items-center gap-2 bg-slate-50 dark:bg-slate-900 rounded-md px-1 py-0.5">
                                             <button
                                                 disabled={isProcessing}
                                                 onClick={() => updateQuantity(item.id, -1)}
-                                                className="w-5 h-5 flex items-center justify-center hover:bg-slate-200 rounded disabled:opacity-50"
+                                                className="w-5 h-5 flex items-center justify-center hover:bg-slate-200 dark:hover:bg-slate-700 rounded disabled:opacity-50"
                                             >-</button>
                                             <span className="w-4 text-center">{item.quantity}</span>
                                             <button
                                                 disabled={isProcessing}
                                                 onClick={() => updateQuantity(item.id, 1)}
-                                                className="w-5 h-5 flex items-center justify-center hover:bg-slate-200 rounded disabled:opacity-50"
+                                                className="w-5 h-5 flex items-center justify-center hover:bg-slate-200 dark:hover:bg-slate-700 rounded disabled:opacity-50"
                                             >+</button>
                                         </div>
                                     </div>
                                 </div>
                                 <div className="text-right">
-                                    <div className="font-bold text-slate-900 text-sm">${(item.price * item.quantity).toFixed(2)}</div>
+                                    <div className="font-bold text-slate-900 dark:text-white text-sm">${(item.price * item.quantity).toFixed(2)}</div>
                                     {!isProcessing && (
                                         <button
                                             onClick={() => removeFromCart(item.id)}
                                             className="text-[10px] text-red-500 hover:underline mt-1 opacity-0 group-hover:opacity-100 transition-opacity"
                                         >
-                                            Remove
+                                            {t('common.remove')}
                                         </button>
                                     )}
                                 </div>
@@ -312,40 +326,40 @@ const PosTerminal = () => {
                 </div>
 
                 {/* Totals & Checkout Panel */}
-                <div className="bg-slate-50 border-t border-slate-200 p-6 shrink-0 rounded-t-3xl shadow-[0_-10px_40px_-15px_rgba(0,0,0,0.1)] z-20">
+                <div className="bg-slate-50 dark:bg-slate-950 border-t border-slate-200 dark:border-slate-800 p-6 shrink-0 rounded-t-3xl shadow-[0_-10px_40px_-15px_rgba(0,0,0,0.1)] dark:shadow-none z-20 transition-colors">
                     <div className="space-y-3 mb-6">
-                        <div className="flex justify-between text-sm text-slate-600">
-                            <span>Subtotal</span>
-                            <span className="font-medium text-slate-900">${subtotal.toFixed(2)}</span>
+                        <div className="flex justify-between text-sm text-slate-600 dark:text-slate-400">
+                            <span>{t('common.subtotal')}</span>
+                            <span className="font-medium text-slate-900 dark:text-slate-100">${subtotal.toFixed(2)}</span>
                         </div>
-                        <div className="flex justify-between text-sm text-slate-600">
-                            <span>Tax (8%)</span>
-                            <span className="font-medium text-slate-900">${tax.toFixed(2)}</span>
+                        <div className="flex justify-between text-sm text-slate-600 dark:text-slate-400">
+                            <span>{t('common.tax')} (8%)</span>
+                            <span className="font-medium text-slate-900 dark:text-slate-100">${tax.toFixed(2)}</span>
                         </div>
-                        <div className="pt-3 border-t border-slate-200 flex justify-between items-end">
-                            <span className="font-medium text-slate-900">Total</span>
-                            <span className="text-3xl font-bold text-indigo-600">${total.toFixed(2)}</span>
+                        <div className="pt-3 border-t border-slate-200 dark:border-slate-800 flex justify-between items-end">
+                            <span className="font-medium text-slate-900 dark:text-slate-100">{t('common.total')}</span>
+                            <span className="text-3xl font-bold text-indigo-600 dark:text-indigo-400">${total.toFixed(2)}</span>
                         </div>
                     </div>
 
                     <div className="grid grid-cols-2 gap-3 mb-3">
                         <Button
                             variant="outline"
-                            className={`h-14 w-full bg-white border-slate-200 flex flex-col items-center justify-center gap-1 transition-all ${paymentType === 'CASH' ? 'border-indigo-600 ring-1 ring-indigo-600 text-indigo-600' : 'hover:bg-slate-50'}`}
+                            className={`h-14 w-full bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 flex flex-col items-center justify-center gap-1 transition-all ${paymentType === 'CASH' ? 'border-indigo-600 ring-1 ring-indigo-600 text-indigo-600 dark:text-indigo-400' : 'hover:bg-slate-50 dark:hover:bg-slate-800'}`}
                             onClick={() => setPaymentType('CASH')}
                             disabled={isProcessing}
                         >
                             <Banknote className="w-5 h-5" />
-                            <span className="text-xs">Cash</span>
+                            <span className="text-xs">{t('common.cash')}</span>
                         </Button>
                         <Button
                             variant="outline"
-                            className={`h-14 w-full bg-white border-slate-200 flex flex-col items-center justify-center gap-1 transition-all ${paymentType === 'CARD' ? 'border-indigo-600 ring-1 ring-indigo-600 text-indigo-600' : 'hover:bg-slate-50'}`}
+                            className={`h-14 w-full bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 flex flex-col items-center justify-center gap-1 transition-all ${paymentType === 'CARD' ? 'border-indigo-600 ring-1 ring-indigo-600 text-indigo-600 dark:text-indigo-400' : 'hover:bg-slate-50 dark:hover:bg-slate-800'}`}
                             onClick={() => setPaymentType('CARD')}
                             disabled={isProcessing}
                         >
                             <CreditCard className="w-5 h-5" />
-                            <span className="text-xs">Card</span>
+                            <span className="text-xs">{t('common.card')}</span>
                         </Button>
                     </div>
 
@@ -357,7 +371,7 @@ const PosTerminal = () => {
                         {isProcessing ? (
                             <Loader2 className="w-6 h-6 animate-spin mx-auto" />
                         ) : (
-                            `Charge $${total.toFixed(2)}`
+                            `${t('common.charge')} $${total.toFixed(2)}`
                         )}
                     </Button>
                 </div>
