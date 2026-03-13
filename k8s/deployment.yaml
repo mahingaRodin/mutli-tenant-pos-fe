@@ -14,7 +14,7 @@ metadata:
   labels:
     app: pos-frontend
 spec:
-  replicas: 2
+  replicas: 1
   selector:
     matchLabels:
       app: pos-frontend
@@ -25,7 +25,7 @@ spec:
     spec:
       containers:
         - name: pos-frontend
-          image: headie1/pos-frontend:0.0.3
+          image: headie1/pos-frontend:0.0.4
           ports:
             - containerPort: 80
           envFrom:
@@ -33,11 +33,11 @@ spec:
                 name: pos-frontend-config
           resources:
             limits:
-              memory: "128Mi"
-              cpu: "500m"
+              memory: "256Mi"
+              cpu: "250m"
             requests:
               memory: "64Mi"
-              cpu: "250m"
+              cpu: "50m"
           readinessProbe:
             httpGet:
               path: /
