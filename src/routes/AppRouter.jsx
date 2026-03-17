@@ -15,8 +15,11 @@ import StoresPage from '../pages/dashboard/StoresPage';
 import InventoryPage from '../pages/dashboard/InventoryPage';
 import OrdersPage from '../pages/dashboard/OrdersPage';
 import SettingsPage from '../pages/dashboard/SettingsPage';
+import StaffPage from '../pages/dashboard/StaffPage';
 import PosTerminal from '../pages/pos/PosTerminal';
 import LandingPage from '../pages/LandingPage';
+import CustomerCatalog from '../pages/customer/CustomerCatalog';
+import CustomerDashboard from '../pages/customer/CustomerDashboard';
 
 // Protected Route Wrapper
 const ProtectedRoute = ({ children, allowedRoles }) => {
@@ -92,6 +95,10 @@ export const router = createBrowserRouter([
                 path: 'settings',
                 element: <SettingsPage />,
             },
+            {
+                path: 'staff',
+                element: <StaffPage />,
+            },
         ],
     },
     {
@@ -101,6 +108,22 @@ export const router = createBrowserRouter([
                 <PosLayout>
                     <PosTerminal />
                 </PosLayout>
+            </ProtectedRoute>
+        ),
+    },
+    {
+        path: '/shop',
+        element: (
+            <ProtectedRoute allowedRoles={['ROLE_CUSTOMER', 'ROLE_SUPER_ADMIN']}>
+                <CustomerCatalog />
+            </ProtectedRoute>
+        ),
+    },
+    {
+        path: '/my-dashboard',
+        element: (
+            <ProtectedRoute allowedRoles={['ROLE_CUSTOMER', 'ROLE_SUPER_ADMIN']}>
+                <CustomerDashboard />
             </ProtectedRoute>
         ),
     },

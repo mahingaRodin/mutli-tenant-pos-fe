@@ -6,7 +6,8 @@ import {
     PlusCircle,
     ArrowRight,
     Building2,
-    ShieldAlert
+    ShieldAlert,
+    MapPin
 } from 'lucide-react';
 import { Button } from '../ui/button';
 import { Link } from 'react-router-dom';
@@ -15,11 +16,19 @@ const BusinessGuard = ({ children }) => {
     const user = useAuthStore((state) => state.user);
 
     // Check if user has a store or branch. 
-    // Super admins might not be assigned to a specific store but can manage all.
+    // Super admins can manage all.
     // Store admins and managers MUST have a storeId.
-    const hasBusiness = user?.storeId || user?.role === 'ROLE_SUPER_ADMIN';
+    const isSuperAdmin = user?.role === 'ROLE_SUPER_ADMIN';
+    const hasStore = user?.storeId;
+    const hasBranch = user?.branchId;
+    
+    // If it's a store admin, they might have a store but no branch yet.
+    // They should still be allowed into the dashboard to manage stores/branches.
+    const isStoreAdmin = user?.role === 'ROLE_STORE_ADMIN';
+    
+    const hasBasicBusinessAccess = hasStore || isSuperAdmin || isStoreAdmin;
 
-    if (!hasBusiness) {
+    if (!hasBasicBusinessAccess) {
         return (
             <div className="flex-1 flex items-center justify-center p-4 lg:p-8 animate-in fade-in zoom-in duration-700">
                 <div className="max-w-2xl w-full bg-white dark:bg-slate-900 rounded-[3rem] shadow-2xl shadow-indigo-100 dark:shadow-none border border-slate-100 dark:border-slate-800 overflow-hidden relative">
@@ -67,6 +76,31 @@ const BusinessGuard = ({ children }) => {
                             </div>
                         </div>
                     </div>
+                </div>
+            </div>
+        );
+    }
+
+    // If they have a store but no branch, and they are trying to access features that REQUIRE a branch (like Inventory or POS)
+    const requiresBranch = ['/dashboard/inventory', '/dashboard', '/pos'].some(path => window.location.pathname.startsWith(path));
+    const isDashboardRoot = window.location.pathname === '/dashboard' || window.location.pathname === '/dashboard/';
+    
+    if (!hasBranch && !isSuperAdmin && requiresBranch && !isDashboardRoot) {
+        return (
+            <div className="flex-1 flex items-center justify-center p-4 lg:p-8 animate-in fade-in zoom-in duration-500">
+                <div className="max-w-xl w-full bg-white dark:bg-slate-900 rounded-[2.5rem] shadow-xl border border-slate-100 dark:border-slate-800 overflow-hidden text-center p-8 lg:p-12">
+                    <div className="w-16 h-16 bg-amber-50 dark:bg-amber-900/20 rounded-2xl flex items-center justify-center mx-auto mb-6">
+                        <MapPin className="w-8 h-8 text-amber-600" />
+                    </div>
+                    <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-4">Branch Required</h2>
+                    <p className="text-slate-500 dark:text-slate-400 mb-8 leading-relaxed">
+                        To access this feature, you need to be assigned to a branch or create one for your store.
+                    </p>
+                    <Link to="/dashboard/stores">
+                        <Button className="w-full bg-indigo-600 hover:bg-indigo-700 h-12 rounded-xl font-bold">
+                            Manage Branches
+                        </Button>
+                    </Link>
                 </div>
             </div>
         );

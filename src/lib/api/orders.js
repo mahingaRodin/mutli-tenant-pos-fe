@@ -22,5 +22,10 @@ export const orderApi = {
         return apiClient.get(`/orders/recent/branch/${branchId}`, {
             params: { page, size }
         });
+    },
+    getByCustomerId: async (customerId, page = 0, size = 20) => {
+        return apiClient.get(`/orders/customer/${customerId}`, {
+            params: { page, size }
+        });
     }
 };

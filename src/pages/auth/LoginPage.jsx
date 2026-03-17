@@ -38,8 +38,11 @@ const LoginPage = () => {
                     window.location.href = '/dashboard';
                 } else if (role === 'ROLE_BRANCH_CASHIER') {
                     window.location.href = '/pos';
+                } else if (role === 'ROLE_CUSTOMER') {
+                    window.location.href = '/shop';
                 } else {
-                    window.location.href = '/';
+                    // Unknown role — send to shop as safe fallback
+                    window.location.href = '/shop';
                 }
             }
         } catch (err) {

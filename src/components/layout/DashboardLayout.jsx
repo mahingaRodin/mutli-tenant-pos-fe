@@ -18,15 +18,18 @@ import {
     Moon,
     Sun,
     Globe,
-    Languages
+    Languages,
+    MapPin
 } from 'lucide-react';
 import { Button } from '../ui/button';
+import BranchPicker from '../dashboard/BranchPicker';
 
 const DashboardLayout = ({ children }) => {
     const { t, i18n } = useTranslation();
     const location = useLocation();
     const logout = useAuthStore((state) => state.logout);
     const user = useAuthStore((state) => state.user);
+    const fetchProfile = useAuthStore((state) => state.fetchProfile);
     const { theme, toggleTheme, sidebarOpen, setSidebarOpen } = useUIStore();
     const [showLogoutConfirm, setShowLogoutConfirm] = React.useState(false);
 
@@ -37,6 +40,7 @@ const DashboardLayout = ({ children }) => {
         { name: t('common.inventory'), path: '/dashboard/inventory', icon: Package, roles: ['ROLE_STORE_ADMIN', 'ROLE_STORE_MANAGER', 'ROLE_BRANCH_MANAGER'] },
         { name: t('common.products'), path: '/dashboard/products', icon: Package, roles: ['ROLE_SUPER_ADMIN', 'ROLE_STORE_ADMIN', 'ROLE_STORE_MANAGER'] },
         { name: t('common.storesAndBranches'), path: '/dashboard/stores', icon: Store, roles: ['ROLE_SUPER_ADMIN', 'ROLE_STORE_ADMIN', 'ROLE_STORE_MANAGER'] },
+        { name: t('common.staff'), path: '/dashboard/staff', icon: Users, roles: ['ROLE_SUPER_ADMIN', 'ROLE_STORE_ADMIN'] },
         { name: t('common.settings'), path: '/dashboard/settings', icon: Settings, roles: ['ROLE_STORE_ADMIN'] },
     ];
 
@@ -48,6 +52,14 @@ const DashboardLayout = ({ children }) => {
         setShowLogoutConfirm(false);
         logout();
     };
+
+    React.useEffect(() => {
+        // Only fetch profile if authenticated and we don't have enough data 
+        // or just to stay in sync
+        if (user) {
+            fetchProfile().catch(err => console.error('Initial profile sync failed:', err));
+        }
+    }, []); // Run once on mount
 
     const navItems = allNavItems.filter(item =>
         !item.roles ||
@@ -115,7 +127,7 @@ const DashboardLayout = ({ children }) => {
                         <Button variant="ghost" size="icon" onClick={() => setSidebarOpen(!sidebarOpen)} className="text-slate-500">
                             <Menu className="w-5 h-5" />
                         </Button>
-                        {/* Context Picker could go here (e.g. Current Branch) */}
+                        <BranchPicker />
                     </div>
 
                     <div className="flex items-center gap-4">

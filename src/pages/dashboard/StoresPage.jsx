@@ -58,12 +58,19 @@ const StoresPage = () => {
         setIsLoading(true);
         setError(null);
         try {
-            // 1. Fetch stores with current pagination
-            const storeRes = await storeApi.getAll(page, size);
-            const stores = storeRes.data?.content || [];
+            // 1. Fetch stores
+            let storeRes;
+            if (user?.role === 'ROLE_STORE_ADMIN') {
+                storeRes = await storeApi.getByAdmin();
+            } else {
+                storeRes = await storeApi.getAll(page, size);
+            }
 
-            setTotalElements(storeRes.data?.totalElements ?? storeRes.data?.page?.totalElements ?? 0);
-            setTotalPages(storeRes.data?.totalPages ?? storeRes.data?.page?.totalPages ?? 0);
+            // Handle both paginated and list responses
+            const stores = Array.isArray(storeRes.data) ? storeRes.data : storeRes.data?.content || [];
+            
+            setTotalElements(storeRes.data?.totalElements ?? storeRes.data?.page?.totalElements ?? stores.length);
+            setTotalPages(storeRes.data?.totalPages ?? storeRes.data?.page?.totalPages ?? 1);
 
             // 2. Fetch branches for each store
             const storesWithBranches = await Promise.all(stores.map(async (store) => {

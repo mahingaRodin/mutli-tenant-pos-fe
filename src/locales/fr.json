@@ -6,6 +6,7 @@
         "inventory": "Inventaire",
         "products": "Produits",
         "storesAndBranches": "Magasins & Succursales",
+        "staff": "Gestion du personnel",
         "settings": "Paramètres",
         "logout": "Déconnexion",
         "confirmLogout": "Confirmer la déconnexion",
@@ -89,7 +90,18 @@
         "remove": "Supprimer",
         "saving": "Enregistrement...",
         "changesSaved": "Changements enregistrés",
-        "saveChanges": "Enregistrer les modifications"
+        "saveChanges": "Enregistrer les modifications",
+        "searchProducts": "Rechercher des produits...",
+        "mySpending": "Mes Dépenses",
+        "details": "Détails",
+        "allProducts": "Explorer les Produits",
+        "shopDescription": "Découvrez une qualité et une valeur exceptionnelles auprès de notre réseau de magasins sélectionnés.",
+        "noProductsFound": "Aucun produit ne correspond à votre recherche",
+        "clearSearch": "Effacer la recherche",
+        "backToShop": "Retour à la Boutique",
+        "addToCart": "Ajouter au Panier",
+        "availableAt": "Disponible À",
+        "allProductsTitle": "Vitrine de Produits"
     },
     "settings": {
         "title": "Paramètres du système",
@@ -186,6 +198,19 @@
         "workEmail": "E-mail professionnel",
         "confirmPassword": "Confirmer le mot de passe",
         "registerAccount": "Créer le compte",
-        "alreadyHaveAccount": "Vous avez déjà un compte ?"
+        "alreadyHaveAccount": "Vous avez déjà un compte ?",
+        "firstName": "Prénom",
+        "lastName": "Nom",
+        "role": "Rôle du compte",
+        "roles": {
+            "storeAdmin": "Administrateur de magasin",
+            "storeManager": "Gestionnaire de magasin",
+            "branchManager": "Directeur de succursale",
+            "branchCashier": "Caissier de succursale",
+            "customer": "Client"
+        }
+    },
+    "dashboard": {
+        "myActivity": "Mon Activité de Dépenses"
     }
 }

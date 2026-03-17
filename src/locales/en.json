@@ -6,6 +6,7 @@
         "inventory": "Inventory",
         "products": "Products",
         "storesAndBranches": "Stores & Branches",
+        "staff": "Staff Management",
         "settings": "Settings",
         "logout": "Logout",
         "confirmLogout": "Confirm Logout",
@@ -89,7 +90,18 @@
         "remove": "Remove",
         "saving": "Saving...",
         "changesSaved": "Changes Saved",
-        "saveChanges": "Save Changes"
+        "saveChanges": "Save Changes",
+        "searchProducts": "Search for products...",
+        "mySpending": "My Spending",
+        "details": "Details",
+        "allProducts": "Explore Products",
+        "shopDescription": "Discover exceptional quality and value from our curated store network.",
+        "noProductsFound": "No products match your search",
+        "clearSearch": "Clear search",
+        "backToShop": "Back to Shop",
+        "addToCart": "Add to Cart",
+        "availableAt": "Available At",
+        "allProductsTitle": "Product Showcase"
     },
     "settings": {
         "title": "System Settings",
@@ -186,6 +198,19 @@
         "workEmail": "Work Email",
         "confirmPassword": "Confirm Password",
         "registerAccount": "Register Account",
-        "alreadyHaveAccount": "Already have an account?"
+        "alreadyHaveAccount": "Already have an account?",
+        "firstName": "First Name",
+        "lastName": "Last Name",
+        "role": "Account Role",
+        "roles": {
+            "storeAdmin": "Store Admin",
+            "storeManager": "Store Manager",
+            "branchManager": "Branch Manager",
+            "branchCashier": "Branch Cashier",
+            "customer": "Customer"
+        }
+    },
+    "dashboard": {
+        "myActivity": "My Spending Activity"
     }
 }

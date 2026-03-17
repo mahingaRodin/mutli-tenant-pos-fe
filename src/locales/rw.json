@@ -6,6 +6,7 @@
         "inventory": "Ububiko",
         "products": "Ibicuruzwa",
         "storesAndBranches": "Amaduka & Ishami",
+        "staff": "Gucunga Abakozi",
         "settings": "Igenamiterere",
         "logout": "Sohoka",
         "confirmLogout": "Kwemeza gusohoka",
@@ -89,7 +90,18 @@
         "remove": "Kuraho",
         "saving": "Turabika...",
         "changesSaved": "Ibihinduwe byabitswe",
-        "saveChanges": "Bika ibyahinduwe"
+        "saveChanges": "Bika ibyahinduwe",
+        "searchProducts": "Shakisha ibicuruzwa...",
+        "mySpending": "Imikoreshereze yanjye",
+        "details": "Ibisobanuro",
+        "allProducts": "Genzura Ibicuruzwa",
+        "shopDescription": "Vumbura ibicuruzwa byiza kandi bifite agaciro mu maduka yacu twatoranyije.",
+        "noProductsFound": "Nta bicuruzwa bijyanye n'ibyo ushakisha",
+        "clearSearch": "Siba ibyo washakishaga",
+        "backToShop": "Subira Guhahira",
+        "addToCart": "Shyra mu Gitebo",
+        "availableAt": "Biboneka Kuri",
+        "allProductsTitle": "Imurikagurisha"
     },
     "settings": {
         "title": "Igenamiterere rya Sisitemu",
@@ -186,6 +198,19 @@
         "workEmail": "Imeyili y'akazi",
         "confirmPassword": "Subiramo ijambo banga",
         "registerAccount": "Emeza Konti",
-        "alreadyHaveAccount": "Ufite konti?"
+        "alreadyHaveAccount": "Ufite konti?",
+        "firstName": "Izina rya mbere",
+        "lastName": "Izina rya kabiri",
+        "role": "Inshingano",
+        "roles": {
+            "storeAdmin": "Umuyobozi w'iduka",
+            "storeManager": "Umucungamari w'iduka",
+            "branchManager": "Umuyobozi w'ishami",
+            "branchCashier": "Umucungamari w'ishami",
+            "customer": "Umukiriya"
+        }
+    },
+    "dashboard": {
+        "myActivity": "Imikoreshereze yanjye"
     }
 }

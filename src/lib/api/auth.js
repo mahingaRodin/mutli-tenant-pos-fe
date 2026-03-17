@@ -24,4 +24,12 @@ export const authApi = {
     login: async (credentials) => {
         return apiClient.post('auth/login', credentials);
     },
+
+    /**
+     * Get current user profile
+     * @returns {Promise<AxiosResponse<User>>}
+     */
+    getProfile: async () => {
+        return apiClient.get('auth/me');
+    },
 };
