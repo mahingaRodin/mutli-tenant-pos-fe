@@ -1,0 +1,47 @@
+name: Build and Deploy Frontend
+
+on:
+  push:
+    branches: ["main"]
+
+env:
+  IMAGE: headie1/pos-frontend
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build & push Docker image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          # Injects the live backend URL into Vite during the build
+          build-args: |
+            VITE_API_URL=http://pos.5.180.181.195.nip.io/msp
+          tags: |
+            ${{ env.IMAGE }}:${{ github.sha }}
+            ${{ env.IMAGE }}:latest
+
+      - name: Deploy to Kamatera Server
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USERNAME }}
+          password: ${{ secrets.SERVER_PASSWORD }}
+          script: |
+            echo "Deploying Frontend..."
+
+            kubectl set image deployment/pos-frontend pos-frontend=${{ env.IMAGE }}:${{ github.sha }} -n pos
+            
+            kubectl rollout status deployment/pos-frontend -n pos

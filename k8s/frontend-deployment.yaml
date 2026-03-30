@@ -1,0 +1,30 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: pos-frontend
+  namespace: pos
+  labels:
+    app: pos-frontend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: pos-frontend
+  template:
+    metadata:
+      labels:
+        app: pos-frontend
+    spec:
+      containers:
+        - name: pos-frontend
+          image: headie1/pos-frontend:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 80
+          resources:
+            limits:
+              memory: "256Mi"
+              cpu: "250m"
+            requests:
+              memory: "64Mi"
+              cpu: "50m"
